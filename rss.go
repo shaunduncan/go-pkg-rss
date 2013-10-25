@@ -46,7 +46,15 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 		ch.Links = make([]Link, len(list))
 
 		for i, v := range list {
-			ch.Links[i].Href = v.GetValue()
+			// Get href
+			href := v.GetValue()
+			if href == "" {
+				href = v.As(ns, "href")
+			}
+			ch.Links[i].Href = href
+
+			// Get rel
+			ch.Links[i].Rel = v.As(ns, "rel")
 		}
 
 		ch.Description = node.S(ns, "description")
