@@ -46,7 +46,7 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 		ch.Links = make([]Link, len(list))
 
 		for i, v := range list {
-			ch.Links[i].Href = v.Value
+			ch.Links[i].Href = v.GetValue()
 		}
 
 		ch.Description = node.S(ns, "description")
@@ -146,7 +146,7 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 			for _, lv := range tl {
 				cat := new(Category)
 				cat.Domain = lv.As(ns, "domain")
-				cat.Text = lv.Value
+				cat.Text = lv.GetValue()
 				i.Categories = append(i.Categories, cat)
 			}
 
