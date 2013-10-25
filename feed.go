@@ -121,6 +121,20 @@ func (this *Feed) FetchClient(uri string, client *http.Client, charset xmlx.Char
 	return this.makeFeed(doc)
 }
 
+// Parses a feed from string contents
+func (this *Feed) Parse(feed string, charset xmlx.CharsetFunc) (err error) {
+	doc := xmlx.New()
+	if err = doc.LoadString(feed, charset); err != nil {
+		return
+	}
+	return this.makeFeed(doc)
+}
+
+// Compat with byte slices
+func (this *Feed) ParseBytes(data []byte, charset xmlx.CharsetFunc) (err error) {
+	return this.Parse(string(data), charset)
+}
+
 // Fetch retrieves the feed's content from the []byte
 //
 // The charset parameter overrides the xml decoder's CharsetReader.
