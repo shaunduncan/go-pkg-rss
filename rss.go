@@ -34,7 +34,7 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 	var list, tl []*xmlx.Node
 	const ns = "*"
 
-	channels := doc.SelectNodes(ns, "channel")
+	channels := doc.SelectNodesRecursive(ns, "channel")
 	for _, node := range channels {
 		if ch = getChan(node.S(ns, "pubDate"), node.S(ns, "title")); ch == nil {
 			ch = new(Channel)
