@@ -1,6 +1,6 @@
 package feeder
 
-import xmlx "github.com/jteeuwen/go-pkg-xmlx"
+import xmlx "github.com/shaunduncan/go-pkg-xmlx"
 
 func (this *Feed) readAtom(doc *xmlx.Document) (err error) {
 	ns := "http://www.w3.org/2005/Atom"
@@ -50,14 +50,14 @@ func (this *Feed) readAtom(doc *xmlx.Document) (err error) {
 		if tn = node.SelectNode(ns, "subtitle"); tn != nil {
 			ch.SubTitle = SubTitle{}
 			ch.SubTitle.Type = tn.As("", "type")
-			ch.SubTitle.Text = tn.Value
+			ch.SubTitle.Text = tn.GetValue()
 		}
 
 		if tn = node.SelectNode(ns, "generator"); tn != nil {
 			ch.Generator = Generator{}
 			ch.Generator.Uri = tn.As("", "uri")
 			ch.Generator.Version = tn.As("", "version")
-			ch.Generator.Text = tn.Value
+			ch.Generator.Text = tn.GetValue()
 		}
 
 		if tn = node.SelectNode(ns, "author"); tn != nil {
@@ -104,15 +104,15 @@ func (this *Feed) readAtom(doc *xmlx.Document) (err error) {
 				i.Content.Type = tn.As("", "type")
 				i.Content.Lang = tn.S("xml", "lang")
 				i.Content.Base = tn.S("xml", "base")
-				i.Content.Text = tn.Value
+				i.Content.Text = tn.GetValue()
 			}
-			
+
 			if tn = item.SelectNode(ns, "author"); tn != nil {
-				i.Author = Author{}		
+				i.Author = Author{}
 		                i.Author.Name = tn.S(ns, "name")
 		                i.Author.Uri = tn.S(ns, "uri")
 		                i.Author.Email = tn.S(ns, "email")
-            		}
+					}
 
 			ch.Items = append(ch.Items, i)
 		}

@@ -28,7 +28,7 @@ package feeder
 import (
 	"errors"
 	"fmt"
-	xmlx "github.com/jteeuwen/go-pkg-xmlx"
+	xmlx "github.com/shaunduncan/go-pkg-xmlx"
 	"net/http"
 	"strconv"
 	"strings"
