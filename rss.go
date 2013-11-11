@@ -2,7 +2,7 @@ package feeder
 
 import xmlx "github.com/shaunduncan/go-pkg-xmlx"
 
-func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
+func (this *Feed) readRss2() (err error) {
 	days := make(map[string]int)
 	days["Monday"] = 1
 	days["Tuesday"] = 2
@@ -34,7 +34,7 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 	var list, tl []*xmlx.Node
 	const ns = "*"
 
-	channels := doc.SelectNodesRecursive(ns, "channel")
+	channels := this.Document.SelectNodesRecursive(ns, "channel")
 	for _, node := range channels {
 		if ch = getChan(node.S(ns, "pubDate"), node.S(ns, "title")); ch == nil {
 			ch = new(Channel)
@@ -123,7 +123,7 @@ func (this *Feed) readRss2(doc *xmlx.Document) (err error) {
 		itemcount := len(ch.Items)
 		list = node.SelectNodes(ns, "item")
 		if len(list) == 0 {
-			list = doc.SelectNodes(ns, "item")
+			list = this.Document.SelectNodes(ns, "item")
 		}
 
 		for _, item := range list {

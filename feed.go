@@ -69,6 +69,9 @@ type Feed struct {
 	// Last time content was fetched. Used in conjunction with CacheTimeout
 	// to ensure we don't get content too often.
 	lastupdate int64
+
+	// Keep the document around
+	*xmlx.Document
 }
 
 func New(cachetimeout int, enforcecachelimit bool, ch ChannelHandler, ih ItemHandler) *Feed {
@@ -112,22 +115,22 @@ func (this *Feed) FetchClient(uri string, client *http.Client, charset xmlx.Char
 	}
 
 	this.Url = uri
-	doc := xmlx.New()
+	this.Document = xmlx.New()
 
-	if err = doc.LoadUriClient(uri, client, charset); err != nil {
+	if err = this.Document.LoadUriClient(uri, client, charset); err != nil {
 		return
 	}
 
-	return this.makeFeed(doc)
+	return this.makeFeed()
 }
 
 // Parses a feed from string contents
 func (this *Feed) Parse(feed string, charset xmlx.CharsetFunc) (err error) {
-	doc := xmlx.New()
-	if err = doc.LoadString(feed, charset); err != nil {
+	this.Document = xmlx.New()
+	if err = this.Document.LoadString(feed, charset); err != nil {
 		return
 	}
-	return this.makeFeed(doc)
+	return this.makeFeed()
 }
 
 // Compat with byte slices
@@ -145,19 +148,19 @@ func (this *Feed) ParseBytes(data []byte, charset xmlx.CharsetFunc) (err error) 
 func (this *Feed) FetchBytes(uri string, content []byte, charset xmlx.CharsetFunc) (err error) {
 	this.Url = uri
 
-	doc := xmlx.New()
+	this.Document = xmlx.New()
 
-	if err = doc.LoadBytes(content, charset); err != nil {
+	if err = this.Document.LoadBytes(content, charset); err != nil {
 		return
 	}
 
-	return this.makeFeed(doc)
+	return this.makeFeed()
 }
 
-func (this *Feed) makeFeed(doc *xmlx.Document) (err error) {
+func (this *Feed) makeFeed() (err error) {
 	// Extract type and version of the feed so we can have the appropriate
 	// function parse it (rss 0.91, rss 0.92, rss 2, atom etc).
-	this.Type, this.Version = this.GetVersionInfo(doc)
+	this.Type, this.Version = this.GetVersionInfo()
 
 	if ok := this.testVersions(); !ok {
 		err = errors.New(fmt.Sprintf("Unsupported feed: %s, version: %+v", this.Type, this.Version))
@@ -165,7 +168,7 @@ func (this *Feed) makeFeed(doc *xmlx.Document) (err error) {
 	}
 
 	chancount := len(this.Channels)
-	if err = this.buildFeed(doc); err != nil || len(this.Channels) == 0 {
+	if err = this.buildFeed(); err != nil || len(this.Channels) == 0 {
 		return
 	}
 
@@ -226,12 +229,12 @@ func (this *Feed) SecondsTillUpdate() int64 {
 	return int64(this.CacheTimeout*60) - (utc.Unix() - (this.lastupdate / 1e9))
 }
 
-func (this *Feed) buildFeed(doc *xmlx.Document) (err error) {
+func (this *Feed) buildFeed() (err error) {
 	switch this.Type {
 	case "rss":
-		err = this.readRss2(doc)
+		err = this.readRss2()
 	case "atom":
-		err = this.readAtom(doc)
+		err = this.readAtom()
 	}
 	return
 }
@@ -255,10 +258,10 @@ func (this *Feed) testVersions() bool {
 	return true
 }
 
-func (this *Feed) GetVersionInfo(doc *xmlx.Document) (ftype string, fversion [2]int) {
+func (this *Feed) GetVersionInfo() (ftype string, fversion [2]int) {
 	var node *xmlx.Node
 
-	if node = doc.SelectNode("http://www.w3.org/2005/Atom", "feed"); node == nil {
+	if node = this.Document.SelectNode("http://www.w3.org/2005/Atom", "feed"); node == nil {
 		goto rss
 	}
 
@@ -267,7 +270,7 @@ func (this *Feed) GetVersionInfo(doc *xmlx.Document) (ftype string, fversion [2]
 	return
 
 rss:
-	if node = doc.SelectNode("", "rss"); node != nil {
+	if node = this.Document.SelectNode("", "rss"); node != nil {
 		ftype = "rss"
 		version := node.As("", "version")
 		p := strings.Index(version, ".")
@@ -278,7 +281,7 @@ rss:
 	}
 
 	// issue#5: Some documents have an RDF root node instead of rss.
-	if node = doc.SelectNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF"); node != nil {
+	if node = this.Document.SelectNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF"); node != nil {
 		ftype = "rss"
 		fversion = [2]int{1, 1}
 		return

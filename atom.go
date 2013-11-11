@@ -2,9 +2,9 @@ package feeder
 
 import xmlx "github.com/shaunduncan/go-pkg-xmlx"
 
-func (this *Feed) readAtom(doc *xmlx.Document) (err error) {
+func (this *Feed) readAtom() (err error) {
 	ns := "http://www.w3.org/2005/Atom"
-	channels := doc.SelectNodes(ns, "feed")
+	channels := this.Document.SelectNodes(ns, "feed")
 
 	getChan := func(id, title string) *Channel {
 		for _, c := range this.Channels {
